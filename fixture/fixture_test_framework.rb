@@ -40,5 +40,4 @@ class Prueba_Test_condiciones
   def testear_que_uno_de_estos_con_parametros
     "asd".deberia ser uno_de_estos 1,"asd",false
   end
-
 end

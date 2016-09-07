@@ -2,9 +2,12 @@ require 'set'
 
 require_relative '../src/clases'
 
+#----------------------------------------------------------------------------------------#
 # Condiciones es un mixin que le da a las clasesTest
 # los mensajes de validacion
-# Cada funcion retorna un objeto de tipo Validacion
+# Cada funcion retorna un objeto de tipo Validacion con un metodo
+# hardcodeado equal?, la funcion deberia ejecuta el equal? pasandole
+# como parametro el objeto que invoco al deberia
 # que recibe la funcion deberia que entiende Object
 module Condiciones
 
@@ -70,6 +73,7 @@ module Condiciones
 end
 
 
+#----------------------------------------------------------------------------------------#
 # Parser es quien se encarga de todo lo relacionado
 # con la sintaxis de como se escriben los test y
 # los hace objetos que el motor u otro objeto los puedan usar
@@ -89,5 +93,4 @@ module Parser
   def es_un_test_suite?(clase)
     clase.name.include? (@@STRING_TEST_SUITE)
   end
-
 end

@@ -2,8 +2,9 @@ require 'set'
 
 require_relative '../src/mixines'
 
+#----------------------------------------------------------------------------------------#
 # Motor es el encargado de cargar las clases de los test
-# y luego ejecutarlos con motor.correrTest
+# y luego ejecutarlos creando una instancia y ejecutando testear()
 class Motor
   include Parser
 
@@ -59,6 +60,8 @@ class Motor
     }
   end
 
+  # testear() -> [Resultado]
+  # realiza el testeo dependiendo de los parametros que recibe
   def testear(*args)
     case
       when args.count == 0
@@ -70,10 +73,16 @@ class Motor
     end
   end
 
+  # esta_cargado?(Class)-> bool
+  # devuelve si la clase test fue cargado en el initialize
+  # de la instancia creada del Motor
   def esta_cargado?(test_suite)
     @@lista_test_suites.include? (test_suite)
   end
 
+  # testear_test_especifico([Class, :Method..])-> [Resultado]
+  # testea pasandole la clase de uno de los test suite cargados
+  # y los test especificos que se quiere correr
   def testear_test_especifico(args)
     instancia = args[0].new
     lista_methodos = args[1..0].clone
@@ -90,6 +99,9 @@ class Motor
     lista_resultados
   end
 
+  # testear_todo_lo_cargado() -> [Resultado]
+  # testea todos los test de todos los test suite cargados
+  # en el initialize de la instancia del motor
   def testear_todo_lo_cargado
     lista_resultados = Set.new
 
@@ -100,6 +112,9 @@ class Motor
     lista_resultados
   end
 
+  # testear_un_test_suit(Class) -> [Resultado]
+  # corre todos los test del test suite pasado por parametro,
+  # el test suite debe estar cargado
   def testear_un_test_suit(clase_test)
     instancia = clase_test.new
     lista_resultados = Set.new
@@ -117,6 +132,7 @@ class Motor
 end
 
 
+#----------------------------------------------------------------------------------------#
 # Validacion es el objeto que crean los metodos del mixin Condicion (ser, mayor_a, etc.)
 # y es el parametro de la funcion deberia del mixin Deberia
 class Validacion
@@ -130,6 +146,8 @@ class Validacion
 
 end
 
+
+#----------------------------------------------------------------------------------------#
 # Resultado es lo que devuelve la funcion deberia
 class Resultado
   attr_accessor :resultado_del_equal,:nombre_test,:nombre_test_suite
@@ -137,6 +155,10 @@ class Resultado
   def initialize
   end
 
+  # imprimir_en_pantalla -> void
+  # imprime sus atributos en pantalla, la idea seria
+  # que al ejecutar los test en la consola se impriman los resultados
+  # con colores dependiendo se de si salio bien o mal
   def imprimir_en_pantalla
   end
 end
