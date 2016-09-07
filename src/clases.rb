@@ -45,13 +45,29 @@ class Motor
   def enseniar_deberia_a_Object
     unless Object.instance_methods.include? :deberia
       Object.class_exec do
-        # deberia(Object) -> bool
+
+        # deberia(Object) -> Resultado
         def deberia(objeto_a_comparar)
-          resultado = Resultado.new
-            resultado.resultado_del_equal= objeto_a_comparar.equal?(self)
+          begin
+            if objeto_a_comparar.equal?(self)
+              resultado = ResultadoPaso.new
+            else
+              resultado = ResultadoFallo.new
+                resultado.resultado_esperado = objeto_a_comparar.obtener_objeto
+                resultado.resultado_obtenido = self
+
+              resultado
+            end
+          rescue
+            resultado = ResultadoExploto.new
+              #resultado.clase_error = Error
+              #resultado.mensage_error = "ASDASD"
+            resultado
+          end
 
           resultado
         end
+
       end
     end
   end
@@ -160,6 +176,18 @@ class Validacion
     self.objeto = objeto_para_preguntar_equal
   end
 
+  # obtener_objeto -> Object
+  # debuelve el atributo objeto, pero se fija si ese objeto es de tipo
+  # Validacion para pedirselo a el, esto pasa por el decorado de las validaciones
+  # que generan los metodos del mixin Condicion
+  def obtener_objeto
+    if objeto.class.equal?(Validacion)
+      objeto.obtener_objeto
+    else
+      objeto
+    end
+  end
+
 end
 
 
@@ -170,11 +198,27 @@ class Resultado
 
   def initialize
   end
+end
 
-  # imprimir_en_pantalla -> void
-  # imprime sus atributos en pantalla, la idea seria
-  # que al ejecutar los test en la consola se impriman los resultados
-  # con colores dependiendo se de si salio bien o mal
-  def imprimir_en_pantalla
+class ResultadoPaso < Resultado
+
+  def initialize
+    self.resultado_del_equal = true
+  end
+end
+
+class ResultadoFallo < Resultado
+    attr_accessor :resultado_esperado, :resultado_obtenido
+
+   def initialize
+     self.resultado_del_equal = false
+   end
+end
+
+class ResultadoExploto < Resultado
+  attr_accessor :clase_error, :mensage_error
+
+  def initialize
+    self.resultado_del_equal = false
   end
 end
