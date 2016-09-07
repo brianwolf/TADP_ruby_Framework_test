@@ -44,4 +44,16 @@ class Prueba_Test_condiciones
   def testear_que_funca_el_deberia_entender
     Class.deberia entender :new
   end
+
+end
+
+class Campo_de_explosiones_Test
+
+  def testear_que_explota_Zero
+    proc{1/0}.deberia explotar_con ZeroDivisionError
+  end
+
+  def testear_que_explota_no_entender
+    proc{Class.dormir}.deberia explotar_con NoMethodError
+  end
 end

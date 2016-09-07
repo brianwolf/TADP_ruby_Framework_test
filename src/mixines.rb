@@ -83,6 +83,26 @@ module Condiciones
     validacion
   end
 
+  #explotar_con(ClassError) -> Validacion
+  def explotar_con (clase_error)
+    validacion = Validacion.new(clase_error)
+
+    validacion.instance_eval do
+      def equal?(bloque)
+        begin
+          bloque.call
+        rescue self.objeto
+          true
+        rescue
+          false
+        else
+          false
+        end
+      end
+    end
+
+    validacion
+  end
 end
 
 

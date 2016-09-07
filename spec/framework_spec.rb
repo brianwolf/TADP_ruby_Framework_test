@@ -27,6 +27,12 @@ describe 'test metaprogramacion del motor' do
     expect(MiSuiteDeTests.instance_methods.include? :mayor_a).to eq(true)
   end
 
+  it 'cargo varios suite y veo que se cargaron todos sus test' do
+    motor = Motor.new Prueba_Test_condiciones, Test_de_prueba_ser
+
+    expect( motor.lista_de_test_cargados.count ).to eq(7)
+  end
+
 end
 
 
@@ -47,8 +53,8 @@ describe 'test del framework' do
   end
 
   it 'ejecuto todos los test cargados' do
-    motor = Motor.new Test_de_prueba_ser, Prueba_Test_condiciones
-    lista_resultados = motor.testear
+    motor = Motor.new Prueba_Test_condiciones, Test_de_prueba_ser, Campo_de_explosiones_Test
+    lista_resultados = motor.testear_todo_lo_cargado
 
     expect( lista_resultados.all? { |resultado| resultado.resultado_del_equal} ).to eq(true)
   end
@@ -58,5 +64,12 @@ describe 'test del framework' do
     lista_resultados = motor.testear Prueba_Test_condiciones, :testear_que_5_mayor_a_3, :testear_que_uno_de_estos_con_parametros
 
     expect( lista_resultados.all? { |resultado| resultado.resultado_del_equal} ).to eq(true)
+  end
+
+  it 'exploto todo' do
+    motor = Motor.new Campo_de_explosiones_Test
+    lista_resultados = motor.testear
+
+    expect(lista_resultados.all? {|resultado| resultado.resultado_del_equal} ).to eq(true)
   end
 end

@@ -8,15 +8,29 @@ require_relative '../src/mixines'
 class Motor
   include Parser
 
-  @@lista_test_suites = Set.new
+  @@lista_test_suites
 
   # initialize(clase_test) -> Motor
   # cuando se inicializa recibe la clase con los test que va a ejecutar
   def initialize (*clases_test)
-    @@lista_test_suites = clases_test
+    @@lista_test_suites = clases_test.clone
 
     enseniar_condiciones_a_clases(@@lista_test_suites)
     enseniar_deberia_a_Object
+  end
+
+  # lista_de_test_cargados -> [:Methods]
+  # devuelve los test de cada suite cargado en el motor
+  def lista_de_test_cargados
+    @lista_test = Set.new
+
+    @@lista_test_suites.each { |suite|
+     (obtener_metodos_de_test suite).each{ |test|
+       @lista_test.add test
+     }
+    }
+
+    @lista_test
   end
 
   # obtener_metodos_de_test(Class) -> [:Method]
@@ -106,7 +120,9 @@ class Motor
     lista_resultados = Set.new
 
     @@lista_test_suites.each { |test_suite|
-      lista_resultados.union( testear_un_test_suit(test_suite).clone )
+      (testear_un_test_suit test_suite).each { |resultado|
+        lista_resultados.add resultado
+      }
     }
 
     lista_resultados
@@ -141,7 +157,7 @@ class Validacion
 
   # initialize(Object) -> Validacion
   def initialize(objeto_para_preguntar_equal)
-    self.objeto= objeto_para_preguntar_equal
+    self.objeto = objeto_para_preguntar_equal
   end
 
 end
