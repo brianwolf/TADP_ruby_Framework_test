@@ -9,6 +9,7 @@ describe 'test metaprogramacion del motor' do
   it 'obtengo los test de la clase test' do
 
     motor = Motor.new MiSuiteDeTests, Test_de_prueba_ser
+
     esperado1 = [:testear_que_pasa_algo,:testear_que_pasa_otra_cosa]
     esperado2 = [:testear_que_7_es_igual_a_7,:testear_que_true_es_igual_a_true]
 
@@ -26,12 +27,6 @@ describe 'test metaprogramacion del motor' do
     expect(MiSuiteDeTests.instance_methods.include? :mayor_a).to eq(true)
   end
 
-  it 'la validacion entiende equal?' do
-    motor = Motor.new Test_de_prueba_ser
-
-    expect(MiSuiteDeTests.instance_methods.include? :mayor_a).to eq(true)
-  end
-
 end
 
 
@@ -39,16 +34,29 @@ describe 'test del framework' do
 
   it 'pruebo el deberia ser' do
     motor = Motor.new Test_de_prueba_ser
-
     lista_resultados = motor.testear(Test_de_prueba_ser)
+
     expect( lista_resultados.all? { |resultado| resultado.resultado_del_equal} ).to eq(true)
   end
 
   it 'pruebo las condiciones menor, mayor y uno_de_estos' do
     motor = Motor.new Prueba_Test_condiciones
-
     lista_resultados = motor.testear(Prueba_Test_condiciones)
+
     expect( lista_resultados.all? { |resultado| resultado.resultado_del_equal} ).to eq(true)
   end
 
+  it 'ejecuto todos los test cargados' do
+    motor = Motor.new Test_de_prueba_ser, Prueba_Test_condiciones
+    lista_resultados = motor.testear
+
+    expect( lista_resultados.all? { |resultado| resultado.resultado_del_equal} ).to eq(true)
+  end
+
+  it 'ejecuto test especifico' do
+    motor = Motor.new Test_de_prueba_ser, Prueba_Test_condiciones
+    lista_resultados = motor.testear Prueba_Test_condiciones, :testear_que_5_mayor_a_3, :testear_que_uno_de_estos_con_parametros
+
+    expect( lista_resultados.all? { |resultado| resultado.resultado_del_equal} ).to eq(true)
+  end
 end

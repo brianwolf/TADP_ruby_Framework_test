@@ -89,4 +89,5 @@ module Parser
   def es_un_test_suite?(clase)
     clase.name.include? (@@STRING_TEST_SUITE)
   end
+
 end

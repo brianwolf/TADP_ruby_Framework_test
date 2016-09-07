@@ -7,13 +7,14 @@ require_relative '../src/mixines'
 class Motor
   include Parser
 
+  @@lista_test_suites = Set.new
+
   # initialize(clase_test) -> Motor
   # cuando se inicializa recibe la clase con los test que va a ejecutar
   def initialize (*clases_test)
-    clases_test.each { |clase|
-      enseniar_condiciones_a_clase(clase)
-    }
+    @@lista_test_suites = clases_test
 
+    enseniar_condiciones_a_clases(@@lista_test_suites)
     enseniar_deberia_a_Object
   end
 
@@ -27,7 +28,6 @@ class Motor
   # enseniar_deberia_a_Object -> void
   # fuerza a que todos los objetos entiendan deberia
   def enseniar_deberia_a_Object
-
     unless Object.instance_methods.include? :deberia
       Object.class_exec do
         # deberia(Object) -> bool
@@ -48,29 +48,72 @@ class Motor
 
   # enseniar_condiciones_a_clase(Class) -> void
   # hace que la clase entienda los mensajes ser, mayor_a, etc
-  def enseniar_condiciones_a_clase(clase_test)
-    clase_test.class_eval do
-      include Condiciones
+  def enseniar_condiciones_a_clases(clases_test)
+
+    clases_test_filtradas = clases_test.select {|clase| es_un_test_suite?(clase)}
+
+    clases_test_filtradas.each { |clase|
+      clase.class_eval do
+        include Condiciones
+      end
+    }
+  end
+
+  def testear(*args)
+    case
+      when args.count == 0
+        self.testear_todo_lo_cargado
+      when args.count == 1 && esta_cargado?(args[0])
+        self.testear_un_test_suit (args[0])
+      when args.count > 1
+        self.testear_test_especifico(args)
     end
   end
 
-  def testear(clase_test)
-    if es_un_test_suite?(clase_test)
-      instancia = clase_test.new
-      lista_resultados = Set.new
-
-      obtener_metodos_de_test(clase_test).each { |metodo_test|
-        resultado = instancia.send(metodo_test).clone
-          resultado.nombre_test = metodo_test.to_s
-          resultado.nombre_test_suite = instancia.class.name
-
-        lista_resultados.add resultado
-      }
-
-      lista_resultados
-    end
+  def esta_cargado?(test_suite)
+    @@lista_test_suites.include? (test_suite)
   end
 
+  def testear_test_especifico(args)
+    instancia = args[0].new
+    lista_methodos = args[1..0].clone
+    lista_resultados = Set.new
+
+    lista_methodos.each { |test|
+      resultado = instancia.send(test).clone
+      resultado.nombre_test = test.to_s
+      resultado.nombre_test_suite = instancia.class.to_s
+
+      lista_resultados.add(resultado)
+    }
+
+    lista_resultados
+  end
+
+  def testear_todo_lo_cargado
+    lista_resultados = Set.new
+
+    @@lista_test_suites.each { |test_suite|
+      lista_resultados.union( testear_un_test_suit(test_suite).clone )
+    }
+
+    lista_resultados
+  end
+
+  def testear_un_test_suit(clase_test)
+    instancia = clase_test.new
+    lista_resultados = Set.new
+
+    obtener_metodos_de_test(clase_test).each { |metodo_test|
+      resultado = instancia.send(metodo_test).clone
+      resultado.nombre_test = metodo_test.to_s
+      resultado.nombre_test_suite = instancia.class.to_s
+
+      lista_resultados.add resultado
+    }
+
+    lista_resultados
+  end
 end
 
 
