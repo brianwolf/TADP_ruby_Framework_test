@@ -70,6 +70,19 @@ module Condiciones
     validacion
   end
 
+  # entender(Method) -> Validacion
+  def entender(metodo)
+    validacion = Validacion.new(metodo)
+
+    validacion.instance_eval do
+      def equal?(otro)
+        otro.respond_to? (self.objeto)
+      end
+    end
+
+    validacion
+  end
+
 end
 
 
