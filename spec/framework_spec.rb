@@ -54,7 +54,7 @@ describe 'test del framework' do
 
   it 'ejecuto todos los test cargados' do
     motor = Motor.new Prueba_Test_condiciones, Test_de_prueba_ser, Campo_de_explosiones_Test
-    lista_resultados = motor.testear_todo_lo_cargado
+    lista_resultados = motor.testear
 
     expect( lista_resultados.all? { |resultado| resultado.resultado_del_equal} ).to eq(true)
   end

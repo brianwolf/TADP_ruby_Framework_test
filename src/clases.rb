@@ -16,7 +16,19 @@ class Motor
     @@lista_test_suites = clases_test.clone
 
     enseniar_condiciones_a_clases(@@lista_test_suites)
-    enseniar_deberia_a_Object
+  end
+
+  # enseniar_condiciones_a_clase(Class) -> void
+  # hace que la clase entienda los mensajes ser, mayor_a, etc
+  def enseniar_condiciones_a_clases(clases_test)
+
+    clases_test_filtradas = clases_test.select {|clase| es_un_test_suite?(clase)}
+
+    clases_test_filtradas.each { |clase|
+      clase.class_eval do
+        include Condiciones
+      end
+    }
   end
 
   # lista_de_test_cargados -> [:Methods]
@@ -40,68 +52,57 @@ class Motor
         select{ |metodo| es_un_test?(metodo)}
   end
 
+  # testear() -> [Resultado]
+  # realiza el testeo dependiendo de los parametros que recibe
+  def testear(*args)
+
+    enseniar_deberia_a_Object
+
+    case
+      when args.count == 0
+        lista_resultados = testear_todo_lo_cargado
+      when args.count == 1 && esta_cargado?(args[0])
+        lista_resultados = testear_un_test_suit (args[0])
+      when args.count > 1
+        lista_resultados = testear_test_especifico(args)
+    end
+
+    olvidar_deberia_a_Object
+
+    lista_resultados
+  end
+
   # enseniar_deberia_a_Object -> void
   # fuerza a que todos los objetos entiendan deberia
+  private
   def enseniar_deberia_a_Object
     unless Object.instance_methods.include? :deberia
-      Object.class_exec do
-
-        # deberia(Object) -> Resultado
-        def deberia(objeto_a_comparar)
+      Object.send(:define_method, :deberia, proc {|objeto_a_comparar|
           begin
             if objeto_a_comparar.equal?(self)
               resultado = ResultadoPaso.new
             else
               resultado = ResultadoFallo.new
-                resultado.resultado_esperado = objeto_a_comparar.obtener_objeto
-                resultado.resultado_obtenido = self
+              resultado.resultado_esperado = objeto_a_comparar.obtener_objeto
+              resultado.resultado_obtenido = self
 
               resultado
             end
           rescue
             resultado = ResultadoExploto.new
-              #resultado.clase_error = Error
-              #resultado.mensage_error = "ASDASD"
+            #resultado.clase_error = Error
+            #resultado.mensage_error = "ASDASD"
             resultado
-          end
-
-          resultado
-        end
-
+          end} )
       end
-    end
+
   end
 
   # olvidar_deberia_a_Object -> void
   def olvidar_deberia_a_Object
-    #preguntar como lo hago
+    Object.send(:undef_method, :deberia)
   end
 
-  # enseniar_condiciones_a_clase(Class) -> void
-  # hace que la clase entienda los mensajes ser, mayor_a, etc
-  def enseniar_condiciones_a_clases(clases_test)
-
-    clases_test_filtradas = clases_test.select {|clase| es_un_test_suite?(clase)}
-
-    clases_test_filtradas.each { |clase|
-      clase.class_eval do
-        include Condiciones
-      end
-    }
-  end
-
-  # testear() -> [Resultado]
-  # realiza el testeo dependiendo de los parametros que recibe
-  def testear(*args)
-    case
-      when args.count == 0
-        self.testear_todo_lo_cargado
-      when args.count == 1 && esta_cargado?(args[0])
-        self.testear_un_test_suit (args[0])
-      when args.count > 1
-        self.testear_test_especifico(args)
-    end
-  end
 
   # esta_cargado?(Class)-> bool
   # devuelve si la clase test fue cargado en el initialize
@@ -113,6 +114,7 @@ class Motor
   # testear_test_especifico([Class, :Method..])-> [Resultado]
   # testea pasandole la clase de uno de los test suite cargados
   # y los test especificos que se quiere correr
+  private
   def testear_test_especifico(args)
     instancia = args[0].new
     lista_methodos = args[1..0].clone
@@ -132,6 +134,7 @@ class Motor
   # testear_todo_lo_cargado() -> [Resultado]
   # testea todos los test de todos los test suite cargados
   # en el initialize de la instancia del motor
+  private
   def testear_todo_lo_cargado
     lista_resultados = Set.new
 
@@ -147,6 +150,7 @@ class Motor
   # testear_un_test_suit(Class) -> [Resultado]
   # corre todos los test del test suite pasado por parametro,
   # el test suite debe estar cargado
+  private
   def testear_un_test_suit(clase_test)
     instancia = clase_test.new
     lista_resultados = Set.new

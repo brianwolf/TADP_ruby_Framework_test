@@ -13,93 +13,56 @@ module Condiciones
 
   # ser (un_objeto)-> Validacion
   def ser (un_objeto)
-    validacion = Validacion.new(un_objeto)
-
-    validacion.instance_eval do
-      def equal?(otro)
-        self.objeto.equal?(otro)
-      end
-    end
-
-    validacion
+    crear_validacion_personalizada(un_objeto) {|otro| self.objeto.equal?(otro)}
   end
 
   # mayor_a (un_objeto)-> Validacion
   def mayor_a (un_objeto)
-    validacion = Validacion.new(un_objeto)
-
-    validacion.instance_eval do
-      def equal?(otro)
-        otro > self.objeto
-      end
-    end
-
-    validacion
+    crear_validacion_personalizada(un_objeto) {|otro| otro > self.objeto}
   end
 
   # menor_a (un_objeto)-> Validacion
   def menor_a (un_objeto)
-    validacion = Validacion.new(un_objeto)
-
-    validacion.instance_eval do
-      def equal?(otro)
-        otro < self.objeto
-      end
-    end
-
-    validacion
+    crear_validacion_personalizada(un_objeto) {|otro| otro < self.objeto}
   end
 
   # uno_de_estos(Objetos) -> Validacion
   def uno_de_estos (*args)
-
     if args.count == 1 && args[0].class.equal?([].class)
       una_lista = args[0]
     else
       una_lista = args
     end
 
-    validacion = Validacion.new(una_lista)
-
-    validacion.instance_eval do
-      def equal?(otro)
-        self.objeto.include? otro
-      end
-    end
-
-    validacion
+    crear_validacion_personalizada(una_lista) {|otro| self.objeto.include? otro}
   end
 
   # entender(Method) -> Validacion
   def entender(metodo)
-    validacion = Validacion.new(metodo)
-
-    validacion.instance_eval do
-      def equal?(otro)
-        otro.respond_to? (self.objeto)
-      end
-    end
-
-    validacion
+    crear_validacion_personalizada(metodo) {|otro| otro.respond_to? (self.objeto)}
   end
 
   #explotar_con(ClassError) -> Validacion
   def explotar_con (clase_error)
-    validacion = Validacion.new(clase_error)
-
-    validacion.instance_eval do
-      def equal?(bloque)
-        begin
-          bloque.call
-        rescue self.objeto
-          true
-        rescue
-          false
-        else
-          false
-        end
+    crear_validacion_personalizada(clase_error) {|bloque|
+      begin
+        bloque.call
+      rescue self.objeto
+        true
+      rescue
+        false
+      else
+        false
       end
-    end
+    }
+  end
+
+  # crear_validacion_personalizada(Object) {|Object| algo...} -> Validacion
+  # Crea una instancia de validacion con el metodo equal? personalizado que se le pasa como bloque
+  # Dentro del bloque se necetita definir el parametro que recibe el equal? para comparar
+  def crear_validacion_personalizada(objeto_para_validar, &bloque)
+    validacion = Validacion.new(objeto_para_validar)
+    validacion.singleton_class.send(:define_method, :equal?, bloque)
 
     validacion
   end
