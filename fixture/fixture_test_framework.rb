@@ -1,6 +1,6 @@
 require_relative '../src/mixines'
 require_relative '../src/clases'
-
+#----------------------------------------------------------------------------------------#
 class MiSuiteDeTests
   def testear_que_pasa_algo
   end
@@ -12,7 +12,7 @@ class MiSuiteDeTests
   end
 end
 
-
+#----------------------------------------------------------------------------------------#
 class Test_de_prueba_ser
   def testear_que_7_es_igual_a_7
     7.deberia ser 7
@@ -23,7 +23,7 @@ class Test_de_prueba_ser
   end
 end
 
-
+#----------------------------------------------------------------------------------------#
 class Prueba_Test_condiciones
   def testear_que_5_mayor_a_3
     5.deberia ser mayor_a 3
@@ -47,6 +47,7 @@ class Prueba_Test_condiciones
 
 end
 
+#----------------------------------------------------------------------------------------#
 class Campo_de_explosiones_Test
 
   def testear_que_explota_Zero
@@ -55,5 +56,33 @@ class Campo_de_explosiones_Test
 
   def testear_que_explota_no_entender
     proc{Class.dormir}.deberia explotar_con NoMethodError
+  end
+end
+
+
+#----------------------------------------------------------------------------------------#
+class Persona
+  attr_accessor :nombre, :edad
+
+  def initialize(nombre, edad)
+    self.edad = edad
+    self.nombre = nombre
+  end
+
+  def equal?(otro)
+    self.nombre = otro.nombre && self.edad = otro.edad
+  end
+
+  def viejo?
+    self.edad > 40
+  end
+end
+
+
+class Prueba_azucar_sintactico_Test
+
+  def testear_que_pepe_deberia_ser_viejo
+    pepe = Persona.new "pepe", 60
+    pepe.deberia ser_viejo
   end
 end

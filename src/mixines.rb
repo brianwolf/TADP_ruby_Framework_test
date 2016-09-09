@@ -57,9 +57,18 @@ module Condiciones
     }
   end
 
+  def ser_(metodo_con_ser_)
+    mensage = metodo_con_ser_.to_s[4,99] + "?"
+
+    crear_validacion_personalizada(mensage) {|otro|
+      otro.send(self.objeto)
+    }
+  end
+
   # crear_validacion_personalizada(Object) {|Object| algo...} -> Validacion
   # Crea una instancia de validacion con el metodo equal? personalizado que se le pasa como bloque
   # Dentro del bloque se necetita definir el parametro que recibe el equal? para comparar
+  private
   def crear_validacion_personalizada(objeto_para_validar, &bloque)
     validacion = Validacion.new(objeto_para_validar)
     validacion.singleton_class.send(:define_method, :equal?, bloque)
@@ -88,5 +97,13 @@ module Parser
   # se fija si la clase es una clase tipo testSuite
   def es_un_test_suite?(clase)
     clase.name.include? (@@STRING_TEST_SUITE)
+  end
+
+  def es_un_metodo_ser_?(nombre_metodo)
+    nombre_metodo.to_s.start_with?("ser_")
+  end
+
+  def es_un_metodo_tener_?(nombre_metodo)
+
   end
 end

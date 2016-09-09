@@ -14,20 +14,38 @@ class Motor
   # cuando se inicializa recibe la clase con los test que va a ejecutar
   def initialize (*clases_test)
     @@lista_test_suites = clases_test.clone
+    preparar_tests_suite_cargados
+  end
 
-    enseniar_condiciones_a_clases(@@lista_test_suites)
+
+  def preparar_tests_suite_cargados
+    incluir_condiciones_y_parser_a_suites_cargados
+    redefinir_method_missing_a_suites_cargados
   end
 
   # enseniar_condiciones_a_clase(Class) -> void
   # hace que la clase entienda los mensajes ser, mayor_a, etc
-  def enseniar_condiciones_a_clases(clases_test)
+  def incluir_condiciones_y_parser_a_suites_cargados
 
-    clases_test_filtradas = clases_test.select {|clase| es_un_test_suite?(clase)}
+    clases_test_filtradas = @@lista_test_suites.select {|clase| es_un_test_suite?(clase)}
 
     clases_test_filtradas.each { |clase|
-      clase.class_eval do
-        include Condiciones
-      end
+      clase.include Condiciones
+      clase.include Parser
+    }
+  end
+
+  def redefinir_method_missing_a_suites_cargados
+
+    @@lista_test_suites.each{ |clase|
+      clase.send(:define_method, :method_missing, proc {|symbol|
+        case
+          when es_un_metodo_ser_?(symbol)
+            ser_(symbol)
+          else
+            super
+        end
+      })
     }
   end
 
@@ -48,8 +66,7 @@ class Motor
   # obtener_metodos_de_test(Class) -> [:Method]
   # dado una clase devuelve los metodos que son test
   def obtener_metodos_de_test(clase_test)
-    clase_test.instance_methods.
-        select{ |metodo| es_un_test?(metodo)}
+    clase_test.instance_methods.select{ |metodo| es_un_test?(metodo)}
   end
 
   # testear() -> [Resultado]
@@ -165,6 +182,7 @@ class Motor
 
     lista_resultados
   end
+
 end
 
 
@@ -188,7 +206,7 @@ class Validacion
     if objeto.class.equal?(Validacion)
       objeto.obtener_objeto
     else
-      objeto
+      self.objeto
     end
   end
 
@@ -199,9 +217,6 @@ end
 # Resultado es lo que devuelve la funcion deberia
 class Resultado
   attr_accessor :resultado_del_equal,:nombre_test,:nombre_test_suite
-
-  def initialize
-  end
 end
 
 class ResultadoPaso < Resultado

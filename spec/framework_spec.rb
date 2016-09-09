@@ -72,4 +72,12 @@ describe 'test del framework' do
 
     expect(lista_resultados.all? {|resultado| resultado.resultado_del_equal} ).to eq(true)
   end
+
+  it 'azucar sintactico ser_' do
+    motor = Motor.new Prueba_azucar_sintactico_Test
+    lista_resultados = motor.testear
+
+    expect(lista_resultados.all? {|resultado| resultado.resultado_del_equal} ).to eq(true)
+  end
 end
+
