@@ -13,12 +13,15 @@ class Motor
   # initialize(clase_test) -> Motor
   # cuando se inicializa recibe la clase con los test que va a ejecutar
   def initialize (*clases_test)
+
     @@lista_test_suites = clases_test.clone
     preparar_tests_suite_cargados
   end
 
-
+  # preparar_tests_suite_cargados -> Void
+  # prepara el motor para la ejecucion de los test
   def preparar_tests_suite_cargados
+
     incluir_condiciones_y_parser_a_suites_cargados
     redefinir_method_missing_a_suites_cargados
   end
@@ -35,13 +38,17 @@ class Motor
     }
   end
 
+  # redefinir_method_missing_a_suites_cargados -> Void
+  # redefine el metodo missing para los azucares sintacticos
   def redefinir_method_missing_a_suites_cargados
 
     @@lista_test_suites.each{ |clase|
-      clase.send(:define_method, :method_missing, proc {|symbol|
+      clase.send(:define_method, :method_missing, proc {|simbolo, *args, &bloque|
         case
-          when es_un_metodo_ser_?(symbol)
-            ser_(symbol)
+          when es_un_metodo_ser_?(simbolo)
+            ser_(simbolo)
+          when es_un_metodo_tener_?(simbolo)
+            tener_(simbolo, args[0])
           else
             super
         end
@@ -212,6 +219,16 @@ class Validacion
 
 end
 
+class ValidacionTener_ < Validacion
+
+  attr_accessor :metodo
+
+  # initialize(Object) -> Validacion
+  def initialize(metodo_tener_, objeto_para_preguntar_equal)
+    self.objeto = objeto_para_preguntar_equal
+    self.metodo = metodo_tener_
+  end
+end
 
 #----------------------------------------------------------------------------------------#
 # Resultado es lo que devuelve la funcion deberia

@@ -64,6 +64,8 @@ end
 class Persona
   attr_accessor :nombre, :edad
 
+  @@fiaca = true
+
   def initialize(nombre, edad)
     self.edad = edad
     self.nombre = nombre
@@ -79,10 +81,17 @@ class Persona
 end
 
 
-class Prueba_azucar_sintactico_Test
+class Prueba_azucar_sintactico_ser_Test
 
   def testear_que_pepe_deberia_ser_viejo
     pepe = Persona.new "pepe", 60
     pepe.deberia ser_viejo
+  end
+end
+
+class Prueba_azucar_sintactico_tener_Test
+  def testear_que_pepe_deberia_tener_fiaca
+    pepe = Persona.new "pepe", 60
+    pepe.deberia tener_fiaca true
   end
 end

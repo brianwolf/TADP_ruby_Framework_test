@@ -42,7 +42,7 @@ module Condiciones
     crear_validacion_personalizada(metodo) {|otro| otro.respond_to? (self.objeto)}
   end
 
-  #explotar_con(ClassError) -> Validacion
+  # explotar_con(ClassError) -> Validacion
   def explotar_con (clase_error)
     crear_validacion_personalizada(clase_error) {|bloque|
       begin
@@ -57,11 +57,20 @@ module Condiciones
     }
   end
 
+  # ser_ (:Method) -> Validacion
   def ser_(metodo_con_ser_)
     mensage = metodo_con_ser_.to_s[4,99] + "?"
 
     crear_validacion_personalizada(mensage) {|otro|
       otro.send(self.objeto)
+    }
+  end
+
+  def tener_(atributo_con_tener_, un_objeto)
+    mensage = atributo_con_tener_.to_s[6,99]
+
+    crear_validacion_personalizada(un_objeto) {|otro|
+      (self.objeto).equal?(otro.instance_variable_get(mensage))
     }
   end
 
@@ -99,11 +108,15 @@ module Parser
     clase.name.include? (@@STRING_TEST_SUITE)
   end
 
+  # es_un_metodo_ser_?(:Method) -> bool
+  # es para el azucar sintactico ser_'algunMetodo'
   def es_un_metodo_ser_?(nombre_metodo)
     nombre_metodo.to_s.start_with?("ser_")
   end
 
+  # es_un_metodo_tener_?(:Method) -> bool
+  # es para el azucar sintactico tener_'algunAtributo'
   def es_un_metodo_tener_?(nombre_metodo)
-
+    nombre_metodo.to_s.start_with?("tener_")
   end
 end

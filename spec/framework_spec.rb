@@ -59,6 +59,13 @@ describe 'test del framework' do
     expect( lista_resultados.all? { |resultado| resultado.resultado_del_equal} ).to eq(true)
   end
 
+  it 'ejecuto test de una suite' do
+    motor = Motor.new Test_de_prueba_ser, Prueba_Test_condiciones
+    lista_resultados = motor.testear Prueba_Test_condiciones
+
+    expect( lista_resultados.all? { |resultado| resultado.resultado_del_equal} ).to eq(true)
+  end
+
   it 'ejecuto test especifico' do
     motor = Motor.new Test_de_prueba_ser, Prueba_Test_condiciones
     lista_resultados = motor.testear Prueba_Test_condiciones, :testear_que_5_mayor_a_3, :testear_que_uno_de_estos_con_parametros
@@ -66,7 +73,7 @@ describe 'test del framework' do
     expect( lista_resultados.all? { |resultado| resultado.resultado_del_equal} ).to eq(true)
   end
 
-  it 'exploto todo' do
+  it 'deberia explotar con' do
     motor = Motor.new Campo_de_explosiones_Test
     lista_resultados = motor.testear
 
@@ -74,10 +81,17 @@ describe 'test del framework' do
   end
 
   it 'azucar sintactico ser_' do
-    motor = Motor.new Prueba_azucar_sintactico_Test
+    motor = Motor.new Prueba_azucar_sintactico_ser_Test
     lista_resultados = motor.testear
 
     expect(lista_resultados.all? {|resultado| resultado.resultado_del_equal} ).to eq(true)
   end
+
+  # it 'azucar sintactico tener_' do
+  #   motor = Motor.new Prueba_azucar_sintactico_tener_Test
+  #   lista_resultados = motor.testear
+  #
+  #   expect(lista_resultados.all? {|resultado| resultado.resultado_del_equal} ).to eq(true)
+  # end
 end
 
