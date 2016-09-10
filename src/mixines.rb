@@ -67,10 +67,10 @@ module Condiciones
   end
 
   def tener_(atributo_con_tener_, un_objeto)
-    mensage = atributo_con_tener_.to_s[6,99]
+    mensage = "@"+  atributo_con_tener_.to_s[6,99]
 
     crear_validacion_personalizada(un_objeto) {|otro|
-      (self.objeto).equal?(otro.instance_variable_get(mensage))
+      (self.objeto).equal?(otro.class.instance_variable_get(mensage))
     }
   end
 
