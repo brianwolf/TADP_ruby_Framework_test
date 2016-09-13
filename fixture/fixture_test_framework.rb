@@ -64,7 +64,7 @@ end
 class Persona
   attr_accessor :nombre, :edad
 
-  @suenio = 20
+  @suenio = true
 
   def initialize(nombre, edad)
     self.edad = edad
@@ -90,8 +90,8 @@ class Prueba_azucar_sintactico_ser_Test
 end
 
 class Prueba_azucar_sintactico_tener_Test
-  def testear_que_pepe_deberia_tener_fiaca
+  def testear_que_pepe_deberia_tener_suenio
     pepe = Persona.new "pepe", 60
-    pepe.deberia tener_suenio 20
+    pepe.deberia tener_suenio true
   end
 end

@@ -8,41 +8,25 @@ require_relative '../src/mixines'
 class Motor
   include Parser
 
-  @@lista_test_suites
+  attr_accessor :lista_test_suites
 
   # initialize(clase_test) -> Motor
   # cuando se inicializa recibe la clase con los test que va a ejecutar
   def initialize (*clases_test)
 
-    @@lista_test_suites = clases_test.clone
+    self.lista_test_suites = clases_test.clone
     preparar_tests_suite_cargados
   end
 
   # preparar_tests_suite_cargados -> Void
   # prepara el motor para la ejecucion de los test
   def preparar_tests_suite_cargados
-
-    incluir_condiciones_y_parser_a_suites_cargados
-    redefinir_method_missing_a_suites_cargados
-  end
-
-  # enseniar_condiciones_a_clase(Class) -> void
-  # hace que la clase entienda los mensajes ser, mayor_a, etc
-  def incluir_condiciones_y_parser_a_suites_cargados
-
-    clases_test_filtradas = @@lista_test_suites.select {|clase| es_un_test_suite?(clase)}
+    clases_test_filtradas = lista_test_suites.select {|clase| es_un_test_suite?(clase)}
 
     clases_test_filtradas.each { |clase|
       clase.include Condiciones
       clase.include Parser
-    }
-  end
 
-  # redefinir_method_missing_a_suites_cargados -> Void
-  # redefine el metodo missing para los azucares sintacticos
-  def redefinir_method_missing_a_suites_cargados
-
-    @@lista_test_suites.each{ |clase|
       clase.send(:define_method, :method_missing, proc {|simbolo, *args, &bloque|
         case
           when es_un_metodo_ser_?(simbolo)
@@ -61,7 +45,7 @@ class Motor
   def lista_de_test_cargados
     @lista_test = Set.new
 
-    @@lista_test_suites.each { |suite|
+    lista_test_suites.each { |suite|
      (obtener_metodos_de_test suite).each{ |test|
        @lista_test.add test
      }
@@ -123,6 +107,7 @@ class Motor
   end
 
   # olvidar_deberia_a_Object -> void
+  private
   def olvidar_deberia_a_Object
     Object.send(:undef_method, :deberia)
   end
@@ -132,7 +117,7 @@ class Motor
   # devuelve si la clase test fue cargado en el initialize
   # de la instancia creada del Motor
   def esta_cargado?(test_suite)
-    @@lista_test_suites.include? (test_suite)
+    lista_test_suites.include? (test_suite)
   end
 
   # testear_test_especifico([Class, :Method..])-> [Resultado]
@@ -162,7 +147,7 @@ class Motor
   def testear_todo_lo_cargado
     lista_resultados = Set.new
 
-    @@lista_test_suites.each { |test_suite|
+    lista_test_suites.each { |test_suite|
       (testear_un_test_suit test_suite).each { |resultado|
         lista_resultados.add resultado
       }

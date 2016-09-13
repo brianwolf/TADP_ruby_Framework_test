@@ -49,8 +49,6 @@ module Condiciones
         bloque.call
       rescue self.objeto
         true
-      rescue
-        false
       else
         false
       end
