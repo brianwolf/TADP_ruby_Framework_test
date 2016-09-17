@@ -38,6 +38,10 @@ end
 
 describe 'test del framework' do
 
+  def contarResultados(resultados,metodo)
+    resultados.select{|resultado| resultado.send(metodo)}.count
+  end
+
   it 'pruebo el deberia ser' do
     motor = Motor.new Test_de_prueba_ser
     lista_resultados = motor.testear(Test_de_prueba_ser)
@@ -117,8 +121,14 @@ describe 'test del framework' do
     #expect( lista_resultados.select{ |resultado| resultado.exploto?}.count ).to eq(1)
   end
 
-  def contarResultados(resultados,metodo)
-    resultados.select{|resultado| resultado.send(metodo)}.count
+  it 'prueba del mock' do
+    motor = Motor.new Test_mock
+    lista_resultados = motor.testear
+
+    expect(contarResultados(lista_resultados,:paso?)).to eq(1)
+    #expect(lista_resultados).to eq(true)
+    #expect('asd' == 'asd').to eq(true)
   end
+
 end
 

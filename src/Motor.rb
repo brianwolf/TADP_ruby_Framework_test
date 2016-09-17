@@ -82,6 +82,7 @@ class Motor
   def testear(*args)
 
     enseniar_deberia_a_Object
+    enseniar_mockear_a_class
 
     case
       when args.count == 0
@@ -93,6 +94,7 @@ class Motor
     end
 
     olvidar_deberia_a_Object
+    olvidar_mockear_a_class
 
     mostrar_resultados lista_resultados
 
@@ -131,6 +133,74 @@ class Motor
   end
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  def agregar_atributo_mock_a_class
+    Class.send(:define_method, :get_instancia_mock, proc {
+      @instancia_mock
+    })
+
+    Class.send(:define_method, :set_instancia_mock, proc {|nueva_instancia|
+      @instancia_mock = nueva_instancia
+    })
+
+  end
+
+  def quitar_atributo_mock_a_class
+    Class.send(:undef_method, :get_instancia_mock)
+    Class.send(:undef_method, :set_instancia_mock)
+  end
+
+  def enseniar_mockear_a_class
+
+    Class.send(:define_method, :mockear, proc {|metodo, &bloque|
+
+      #creo instancia si está en nil
+      self.set_instancia_mock(self.new) if self.get_instancia_mock.nil?
+
+      #borro el metodo si ya existe para crearlo de nuevo con el bloque
+      self.get_instancia_mock.singleton_class.send(:undef_method, metodo) if self.instance_methods.include? metodo
+      self.get_instancia_mock.singleton_class.send(:define_method, metodo, bloque)
+
+      #redefino el method_missing a la clase que llama a mockear, es decir, self
+      self.singleton_class.send(:define_method, :method_missing, proc {|simbolo, *args, &block|
+        #super unless self.instance_methods.include? simbolo
+
+        get_instancia_mock.send(simbolo, *args)
+      })
+    })
+  end
+
+  def olvidar_mockear_a_class
+    Class.send(:undef_method, :mockear)
+  end
+
+
+
+
+
+
+
+
+
+
+
+
+
   # esta_cargado?(Class)-> bool
   # devuelve si la clase test fue cargado en el initialize
   # de la instancia creada del Motor
@@ -149,7 +219,7 @@ class Motor
 
     lista_methodos.each { |test|
       if(instancia.respond_to? test)
-        resultado = instancia.send(test)
+        resultado = ejecutar_test(instancia, test)
         resultado.nombre_test = test.to_s
         resultado.nombre_test_suite = instancia.class.to_s
 
@@ -185,7 +255,7 @@ class Motor
     lista_resultados = Set.new
 
     obtener_metodos_de_test(clase_test).each { |metodo_test|
-      resultado = instancia.send(metodo_test).clone
+      resultado = ejecutar_test(instancia, metodo_test)
       resultado.nombre_test = metodo_test.to_s
       resultado.nombre_test_suite = instancia.class.to_s
 
@@ -193,6 +263,18 @@ class Motor
     }
 
     lista_resultados
+  end
+
+  private
+  def ejecutar_test(instancia_test_suit, test)
+
+    agregar_atributo_mock_a_class
+
+    resultado = instancia_test_suit.send(test)
+
+    quitar_atributo_mock_a_class
+
+    resultado
   end
 
   def contarResultado(resultados,metodo)

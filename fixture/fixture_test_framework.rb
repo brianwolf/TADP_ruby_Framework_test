@@ -161,3 +161,24 @@ class Prueba_azucar_sintactico_tener_Test
     pepe.deberia tener_apellido 'gomez'
   end
 end
+
+#----------------------------------------------------------------------------------------#
+class PersonalHome
+  def salulda
+    "es al cohete porque me sobre escriben"
+  end
+end
+
+class Test_mock
+
+  def testear_que_el_mock_funca
+
+    PersonalHome.mockear(:saluda) do
+      "hola"
+    end
+
+    saludo_personal_home = PersonalHome.saluda
+
+    saludo_personal_home.deberia ser "hola"
+  end
+end

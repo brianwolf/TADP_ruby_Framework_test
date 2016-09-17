@@ -8,7 +8,11 @@ module Condiciones
 
   # ser (un_objeto)-> Validacion
   def ser (un_objeto)
-    crear_validacion_personalizada(un_objeto) {|otro| self.objeto.equal?(otro)}
+    if un_objeto.class.equal?(String)
+      crear_validacion_personalizada(un_objeto) {|otro| self.objeto == otro}
+    else
+      crear_validacion_personalizada(un_objeto) {|otro| self.objeto.equal?(otro)}
+    end
   end
 
   # mayor_a (un_objeto)-> Validacion
