@@ -82,6 +82,9 @@ class Prueba_Test_condiciones
     7.deberia entender :new
   end
 
+  def testear_que_no_funca_el_deberia_entender
+    7.deberia entender :saluda
+  end
 end
 
 #----------------------------------------------------------------------------------------#
@@ -164,21 +167,63 @@ end
 
 #----------------------------------------------------------------------------------------#
 class PersonalHome
-  def salulda
-    "es al cohete porque me sobre escriben"
+  def cantidad_personas
+    0
+  end
+
+  def duplico_cantidad_personas
+    self.cantidad_personas*2
   end
 end
 
 class Test_mock
 
   def testear_que_el_mock_funca
-
-    PersonalHome.mockear(:saluda) do
-      "hola"
+    PersonalHome.mockear(:cantidad_personas) do
+      100
     end
 
-    saludo_personal_home = PersonalHome.saluda
-
-    saludo_personal_home.deberia ser "hola"
+    respuesta = PersonalHome.new_mock.cantidad_personas
+    respuesta.deberia ser 100
   end
+
+  def testear_que_se_pierde_el_contexto_entre_tests
+    PersonalHome.mockear(:nuevo_metodo) do
+      "no importa, estoy probando cantidad_personas"
+    end
+
+    #en el test anterior modifique la cantidad_personas para que devuelva 100
+    #si no perderia el contexto deberia mantener ese 100, pero com lo pierde, vuelve al original que es 0
+    respuesta = PersonalHome.new_mock.cantidad_personas
+    respuesta.deberia ser 0
+  end
+
+  def testear_que_explota_porque_no_entiende
+    PersonalHome.mockear(:nueva_funcion) do
+      "no me van a usar"
+    end
+
+    proc{PersonalHome.new.sarasa}.deberia explotar_con NoMethodError
+  end
+
+  def testear_que_no_se_ensucia_la_clase_mockeada
+    PersonalHome.mockear(:cantidad_personas) do
+      100
+    end
+
+    respuesta = PersonalHome.new.cantidad_personas
+    respuesta.deberia ser 0
+  end
+
+
+  def testear_que_un_metodo_llama_a_otro
+
+    PersonalHome.mockear(:cantidad_personas) do
+      10
+    end
+
+    respuesta = PersonalHome.new_mock.duplico_cantidad_personas
+    respuesta.deberia ser 20
+  end
+
 end

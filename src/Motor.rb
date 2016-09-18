@@ -2,12 +2,14 @@ require 'set'
 
 require_relative 'Parser'
 require_relative 'Condiciones'
+require_relative 'Mock'
+require_relative 'Manejo_Resultados'
 
 #----------------------------------------------------------------------------------------#
 # Motor es el encargado de cargar las clases de los test
 # y luego ejecutarlos creando una instancia y ejecutando testear()
 class Motor
-  include Parser
+  include Parser, Mock, Manejo_Resultados
 
   @@lista_test_suites
 
@@ -82,7 +84,6 @@ class Motor
   def testear(*args)
 
     enseniar_deberia_a_Object
-    enseniar_mockear_a_class
 
     case
       when args.count == 0
@@ -94,7 +95,6 @@ class Motor
     end
 
     olvidar_deberia_a_Object
-    olvidar_mockear_a_class
 
     mostrar_resultados lista_resultados
 
@@ -132,75 +132,6 @@ class Motor
     Object.send(:undef_method, :deberia)
   end
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  def agregar_atributo_mock_a_class
-    Class.send(:define_method, :get_instancia_mock, proc {
-      @instancia_mock
-    })
-
-    Class.send(:define_method, :set_instancia_mock, proc {|nueva_instancia|
-      @instancia_mock = nueva_instancia
-    })
-
-  end
-
-  def quitar_atributo_mock_a_class
-    Class.send(:undef_method, :get_instancia_mock)
-    Class.send(:undef_method, :set_instancia_mock)
-  end
-
-  def enseniar_mockear_a_class
-
-    Class.send(:define_method, :mockear, proc {|metodo, &bloque|
-
-      #creo instancia si está en nil
-      self.set_instancia_mock(self.new) if self.get_instancia_mock.nil?
-
-      #borro el metodo si ya existe para crearlo de nuevo con el bloque
-      self.get_instancia_mock.singleton_class.send(:undef_method, metodo) if self.instance_methods.include? metodo
-      self.get_instancia_mock.singleton_class.send(:define_method, metodo, bloque)
-
-      #redefino el method_missing a la clase que llama a mockear, es decir, self
-      self.singleton_class.send(:define_method, :method_missing, proc {|simbolo, *args, &block|
-        #super unless self.instance_methods.include? simbolo
-
-        get_instancia_mock.send(simbolo, *args)
-      })
-    })
-  end
-
-  def olvidar_mockear_a_class
-    Class.send(:undef_method, :mockear)
-  end
-
-
-
-
-
-
-
-
-
-
-
-
-
   # esta_cargado?(Class)-> bool
   # devuelve si la clase test fue cargado en el initialize
   # de la instancia creada del Motor
@@ -211,7 +142,7 @@ class Motor
   # testear_test_especifico([Class, :Method..])-> [Resultado]
   # testea pasandole la clase de uno de los test suite cargados
   # y los test especificos que se quiere correr
-
+  private
   def testear_test_especifico(args)
     instancia = args[0].new
     lista_methodos = args[1..-1]
@@ -233,7 +164,7 @@ class Motor
   # testear_todo_lo_cargado() -> [Resultado]
   # testea todos los test de todos los test suite cargados
   # en el initialize de la instancia del motor
-
+  private
   def testear_todo_lo_cargado
     lista_resultados = Set.new
 
@@ -249,7 +180,7 @@ class Motor
   # testear_un_test_suit(Class) -> [Resultado]
   # corre todos los test del test suite pasado por parametro,
   # el test suite debe estar cargado
-
+  private
   def testear_un_test_suit(clase_test)
     instancia = clase_test.new
     lista_resultados = Set.new
@@ -265,38 +196,18 @@ class Motor
     lista_resultados
   end
 
+  #ejecutar_test(Class, :Method) -> Resultado
+  # hace el send para ejecutar el test
   private
   def ejecutar_test(instancia_test_suit, test)
 
-    agregar_atributo_mock_a_class
+    enseniar_metodos_mock_a_Class
 
     resultado = instancia_test_suit.send(test)
 
-    quitar_atributo_mock_a_class
+    olvidar_metodos_mock_de_Class
 
     resultado
-  end
-
-  def contarResultado(resultados,metodo)
-    resultados.count {|resultado| resultado.send(metodo)}
-  end
-
-  def mostrar_test(resultados,metodo)
-    resultados.select {|resultado| resultado.send(metodo)}.each {|test| test.mostrarse}
-  end
-
-  def mostrar_resultados(resultados)
-
-    puts "Tests ejecutados: #{resultados.count},
-    tests pasados: #{contarResultado(resultados,:paso?)},
-    tests fallidos: #{contarResultado(resultados,:fallo?)},
-    tests explotados: #{contarResultado(resultados,:exploto?)}."
-    puts 'Tests pasados:'
-    mostrar_test(resultados,:paso?)
-    puts 'Tests fallidos:'
-    mostrar_test(resultados,:fallo?)
-    puts 'Tests explotados:'
-    mostrar_test(resultados,:exploto?)
   end
 
 end
