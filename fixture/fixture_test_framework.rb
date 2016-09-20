@@ -188,7 +188,7 @@ class Test_mock
   end
 
   def testear_que_se_pierde_el_contexto_entre_tests
-    PersonalHome.mockear(:duplico_cantidad_personas) do
+    PersonalHome.mockear(:asd) do
       "no importa, estoy probando cantidad_personas"
     end
 
@@ -198,23 +198,10 @@ class Test_mock
     respuesta.deberia ser 0
   end
 
-  def testear_que_explota_porque_no_entiende
-    PersonalHome.mockear(:duplico_cantidad_personas) do
-      "no me van a usar"
-    end
-
-    proc{PersonalHome.new.sarasa}.deberia explotar_con NoMethodError
+  def testear_que_el_mock_pierde_metodos_nuevos
+    respuesta = PersonalHome.new.respond_to? :asd
+    respuesta.deberia ser false
   end
-
-  def testear_que_no_se_ensucia_la_clase_mockeada
-    PersonalHome.mockear(:cantidad_personas) do
-      100
-    end
-
-    respuesta = PersonalHome.new.cantidad_personas
-    respuesta.deberia ser 0
-  end
-
 
   def testear_que_un_metodo_llama_a_otro
 
@@ -225,5 +212,4 @@ class Test_mock
     respuesta = PersonalHome.new.duplico_cantidad_personas
     respuesta.deberia ser 20
   end
-
 end

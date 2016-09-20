@@ -125,7 +125,7 @@ describe 'test del framework' do
     motor = Motor.new Test_mock
     lista_resultados = motor.testear
 
-    expect(contarResultados(lista_resultados,:paso?)).to eq(5)
+    expect(contarResultados(lista_resultados,:paso?)).to eq(4)
     expect(contarResultados(lista_resultados,:fallo?)).to eq(0)
     expect(contarResultados(lista_resultados,:exploto?)).to eq(0)
   end
