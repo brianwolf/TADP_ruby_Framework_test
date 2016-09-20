@@ -4,12 +4,13 @@ require_relative 'Parser'
 require_relative 'Condiciones'
 require_relative 'Mock'
 require_relative 'Manejo_Resultados'
+require_relative 'Comportamiento'
 
 #----------------------------------------------------------------------------------------#
 # Motor es el encargado de cargar las clases de los test
 # y luego ejecutarlos creando una instancia y ejecutando testear()
 class Motor
-  include Parser, Mock, Manejo_Resultados
+  include Parser, Manejo_Resultados, Mock
 
   @@lista_test_suites
 
@@ -84,6 +85,7 @@ class Motor
   def testear(*args)
 
     enseniar_deberia_a_Object
+    #self.class.enseniar_mockear_a_class
 
     case
       when args.count == 0
@@ -95,7 +97,7 @@ class Motor
     end
 
     olvidar_deberia_a_Object
-
+    #self.class.recomponer_comportamiento_mockeado
     mostrar_resultados lista_resultados
 
     lista_resultados
@@ -200,14 +202,12 @@ class Motor
   # hace el send para ejecutar el test
   private
   def ejecutar_test(instancia_test_suit, test)
-
-    enseniar_metodos_mock_a_Class
+    Mock.enseniar_mockear_a_class
 
     resultado = instancia_test_suit.send(test)
 
-    olvidar_metodos_mock_de_Class
+    Mock.recomponer_comportamiento_mockeado
 
     resultado
   end
-
 end

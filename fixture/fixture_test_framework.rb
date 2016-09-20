@@ -183,23 +183,23 @@ class Test_mock
       100
     end
 
-    respuesta = PersonalHome.new_mock.cantidad_personas
+    respuesta = PersonalHome.new.cantidad_personas
     respuesta.deberia ser 100
   end
 
   def testear_que_se_pierde_el_contexto_entre_tests
-    PersonalHome.mockear(:nuevo_metodo) do
+    PersonalHome.mockear(:duplico_cantidad_personas) do
       "no importa, estoy probando cantidad_personas"
     end
 
     #en el test anterior modifique la cantidad_personas para que devuelva 100
     #si no perderia el contexto deberia mantener ese 100, pero com lo pierde, vuelve al original que es 0
-    respuesta = PersonalHome.new_mock.cantidad_personas
+    respuesta = PersonalHome.new.cantidad_personas
     respuesta.deberia ser 0
   end
 
   def testear_que_explota_porque_no_entiende
-    PersonalHome.mockear(:nueva_funcion) do
+    PersonalHome.mockear(:duplico_cantidad_personas) do
       "no me van a usar"
     end
 
@@ -222,7 +222,7 @@ class Test_mock
       10
     end
 
-    respuesta = PersonalHome.new_mock.duplico_cantidad_personas
+    respuesta = PersonalHome.new.duplico_cantidad_personas
     respuesta.deberia ser 20
   end
 
