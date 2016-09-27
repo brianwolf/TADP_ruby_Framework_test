@@ -1,213 +1,81 @@
 require 'set'
 
 require_relative 'Parser'
-require_relative 'Condiciones'
-require_relative 'Mock'
 require_relative 'Manejo_Resultados'
-require_relative 'Comportamiento'
+require_relative 'Test_tadp'
 
-#----------------------------------------------------------------------------------------#
-# Motor es el encargado de cargar las clases de los test
-# y luego ejecutarlos creando una instancia y ejecutando testear()
 class Motor
-  include Parser, Manejo_Resultados, Mock
+  include Parser, Manejo_Resultados
 
-  @@lista_test_suites
+  attr_accessor :lista_de_test
 
-  # initialize(clase_test) -> Motor
-  # cuando se inicializa recibe la clase con los test que va a ejecutar
   def initialize (*clases_test)
-
-    @@lista_test_suites = clases_test.clone
-    preparar_tests_suite_cargados
+    crear_y_cargar_objetos_test clases_test
   end
 
-  # preparar_tests_suite_cargados -> Void
-  # prepara el motor para la ejecucion de los test
-  def preparar_tests_suite_cargados
+  def testear(*args)
+    limpiar_test_cargados
 
-    incluir_condiciones_y_parser_a_suites_cargados
-    redefinir_method_missing_a_suites_cargados
+    test_a_correr = generar_lista_de_test_a_partir_de_argumentos args
+
+    ejecutar_tests test_a_correr
+    mostrar_resultados test_a_correr
+
+    obtener_resultados_de_tests test_a_correr
   end
 
-  # enseniar_condiciones_a_clase(Class) -> void
-  # hace que la clase entienda los mensajes ser, mayor_a, etc
-  def incluir_condiciones_y_parser_a_suites_cargados
-
-    clases_test_filtradas = @@lista_test_suites.select {|clase| es_un_test_suite?(clase)}
-
-    clases_test_filtradas.each { |clase|
-      clase.include Condiciones
-      clase.include Parser
-    }
+  def esta_cargado? suite
+    self.lista_de_test.any? { |test| test.suite == suite}
   end
 
-  # redefinir_method_missing_a_suites_cargados -> Void
-  # redefine el metodo missing para los azucares sintacticos
-  def redefinir_method_missing_a_suites_cargados
-
-    @@lista_test_suites.each{ |clase|
-      clase.send(:define_method, :method_missing, proc {|simbolo, *args, &block|
-        case
-          when es_un_metodo_ser_?(simbolo)
-            ser_(simbolo)
-          when es_un_metodo_tener_?(simbolo)
-            tener_(simbolo, args[0])
-          else
-            super
-        end
-      })
-    }
+  private
+  def limpiar_test_cargados
+    self.lista_de_test.each { |test| test.resultado = nil }
   end
 
-  # lista_de_test_cargados -> [:Methods]
-  # devuelve los test de cada suite cargado en el motor
-  def lista_de_test_cargados
-    @lista_test = Set.new
+  private
+  def crear_y_cargar_objetos_test (clases_test)
+    self.lista_de_test ||=[]
 
-    @@lista_test_suites.each { |suite|
-      (obtener_metodos_de_test suite).each{ |test|
-        @lista_test.add test
+    clases_test.each { |suite|
+      (filtrar_metodos_test suite.instance_methods).each { |test|
+        self.lista_de_test << Test_tadp.new(suite, test)
       }
     }
-
-    @lista_test
   end
 
-  # obtener_metodos_de_test(Class) -> [:Method]
-  # dado una clase devuelve los metodos que son test
-  def obtener_metodos_de_test(clase_test)
-    clase_test.instance_methods.select{ |metodo| es_un_test?(metodo)}
+  private
+  def obtener_resultados_de_tests lista_test
+    @resultados_obtenidos = []
+
+    lista_test.each{|test|
+      @resultados_obtenidos << test.resultado if test.te_ejecutaste?
+    }
+
+    @resultados_obtenidos
   end
 
-  # testear() -> [Resultado]
-  # realiza el testeo dependiendo de los parametros que recibe
-  def testear(*args)
-
-    enseniar_deberia_a_Object
-    #self.class.enseniar_mockear_a_class
-
+  private
+  def generar_lista_de_test_a_partir_de_argumentos args
     case
       when args.count == 0
-        lista_resultados = testear_todo_lo_cargado
+        @test_a_correr = self.lista_de_test
+
       when args.count == 1 && esta_cargado?(args[0])
-        lista_resultados = testear_un_test_suit (args[0])
+        @test_a_correr = self.lista_de_test.select{|test| test.suite == args[0]}
+
       when args.count > 1
-        lista_resultados = testear_test_especifico(args)
+        metodos_test = filtrar_metodos_test args[1..-1]
+        @test_a_correr = self.lista_de_test.select{|test|
+          (test.suite == args[0]) && (metodos_test.include? test.test)}
     end
 
-    olvidar_deberia_a_Object
-    #self.class.recomponer_comportamiento_mockeado
-    mostrar_resultados lista_resultados
-
-    lista_resultados
+    @test_a_correr
   end
 
-  # enseniar_deberia_a_Object -> void
-  # fuerza a que todos los objetos entiendan deberia
   private
-  def enseniar_deberia_a_Object
-    unless Object.instance_methods.include? :deberia
-      Object.send(:define_method, :deberia, proc {|objeto_a_comparar|
-        begin
-          if objeto_a_comparar.equal?(self)
-            resultado = ResultadoPaso.new
-          else
-            resultado = ResultadoFallo.new
-            resultado.resultado_esperado = objeto_a_comparar.obtener_objeto
-            resultado.resultado_obtenido = self
-
-            resultado
-          end
-        rescue Exception => e
-          resultado = ResultadoExploto.new
-          resultado.clase_error = e.class
-          resultado.mensage_error = e.backtrace
-          resultado
-        end} )
-    end
-
+  def ejecutar_tests test_a_correr
+    test_a_correr.each { |test| test.testear}
   end
 
-  # olvidar_deberia_a_Object -> void
-  def olvidar_deberia_a_Object
-    Object.send(:undef_method, :deberia)
-  end
-
-  # esta_cargado?(Class)-> bool
-  # devuelve si la clase test fue cargado en el initialize
-  # de la instancia creada del Motor
-  def esta_cargado?(test_suite)
-    @@lista_test_suites.include? (test_suite)
-  end
-
-  # testear_test_especifico([Class, :Method..])-> [Resultado]
-  # testea pasandole la clase de uno de los test suite cargados
-  # y los test especificos que se quiere correr
-  private
-  def testear_test_especifico(args)
-    instancia = args[0].new
-    lista_methodos = args[1..-1]
-    lista_resultados = Set.new
-
-    lista_methodos.each { |test|
-      if(instancia.respond_to? test)
-        resultado = ejecutar_test(instancia, test)
-        resultado.nombre_test = test.to_s
-        resultado.nombre_test_suite = instancia.class.to_s
-
-        lista_resultados.add(resultado)
-      end
-    }
-
-    lista_resultados
-  end
-
-  # testear_todo_lo_cargado() -> [Resultado]
-  # testea todos los test de todos los test suite cargados
-  # en el initialize de la instancia del motor
-  private
-  def testear_todo_lo_cargado
-    lista_resultados = Set.new
-
-    @@lista_test_suites.each { |test_suite|
-      (testear_un_test_suit test_suite).each { |resultado|
-        lista_resultados.add resultado
-      }
-    }
-
-    lista_resultados
-  end
-
-  # testear_un_test_suit(Class) -> [Resultado]
-  # corre todos los test del test suite pasado por parametro,
-  # el test suite debe estar cargado
-  private
-  def testear_un_test_suit(clase_test)
-    instancia = clase_test.new
-    lista_resultados = Set.new
-
-    obtener_metodos_de_test(clase_test).each { |metodo_test|
-      resultado = ejecutar_test(instancia, metodo_test)
-      resultado.nombre_test = metodo_test.to_s
-      resultado.nombre_test_suite = instancia.class.to_s
-
-      lista_resultados.add resultado
-    }
-
-    lista_resultados
-  end
-
-  #ejecutar_test(Class, :Method) -> Resultado
-  # hace el send para ejecutar el test
-  private
-  def ejecutar_test(instancia_test_suit, test)
-    Mock.enseniar_mockear_a_class
-
-    resultado = instancia_test_suit.send(test)
-
-    Mock.recomponer_comportamiento_mockeado
-
-    resultado
-  end
 end

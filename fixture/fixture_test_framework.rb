@@ -1,9 +1,11 @@
+require_relative '../fixture/Modelos/Persona'
 require_relative '../src/Motor'
 require_relative '../src/Resultado'
 require_relative '../src/Validacion'
 
 require_relative '../src/Condiciones'
 require_relative '../src/Parser'
+
 
 #----------------------------------------------------------------------------------------#
 class MiSuiteDeTests
@@ -34,6 +36,11 @@ class Test_de_prueba_ser
   def testear_que_hola_es_igual_a_chau
     'hola'.deberia ser 'chau'
   end
+
+  def testear_que_dos_strings_son_iguales
+    'hola'.deberia ser 'hola'
+  end
+
 end
 
 #----------------------------------------------------------------------------------------#
@@ -51,7 +58,7 @@ class Prueba_Test_condiciones
   end
 
   def testear_que_2_menor_a_100
-    3.deberia ser menor_a 100
+    2.deberia ser menor_a 100
   end
 
   def testear_que_6_menor_a_3
@@ -107,28 +114,6 @@ class Campo_de_explosiones_Test
   end
 end
 
-
-#----------------------------------------------------------------------------------------#
-class Persona
-  attr_accessor :nombre, :edad
-
-  @suenio = 20
-
-  def initialize(nombre, edad)
-    self.edad = edad
-    self.nombre = nombre
-  end
-
-  def equal?(otro)
-    self.nombre = otro.nombre && self.edad = otro.edad
-  end
-
-  def viejo?
-    self.edad > 40
-  end
-end
-
-
 class Prueba_azucar_sintactico_ser_Test
 
   def testear_que_pepe_deberia_ser_viejo
@@ -162,54 +147,5 @@ class Prueba_azucar_sintactico_tener_Test
   def testear_que_pepe_deberia_tener_apellido_gomez
     pepe = Persona.new 'pepe', 30
     pepe.deberia tener_apellido 'gomez'
-  end
-end
-
-#----------------------------------------------------------------------------------------#
-class PersonalHome
-  def cantidad_personas
-    0
-  end
-
-  def duplico_cantidad_personas
-    self.cantidad_personas*2
-  end
-end
-
-class Test_mock
-
-  def testear_que_el_mock_funca
-    PersonalHome.mockear(:cantidad_personas) do
-      100
-    end
-
-    respuesta = PersonalHome.new.cantidad_personas
-    respuesta.deberia ser 100
-  end
-
-  def testear_que_se_pierde_el_contexto_entre_tests
-    PersonalHome.mockear(:asd) do
-      "no importa, estoy probando cantidad_personas"
-    end
-
-    #en el test anterior modifique la cantidad_personas para que devuelva 100
-    #si no perderia el contexto deberia mantener ese 100, pero com lo pierde, vuelve al original que es 0
-    respuesta = PersonalHome.new.cantidad_personas
-    respuesta.deberia ser 0
-  end
-
-  def testear_que_el_mock_pierde_metodos_nuevos
-    respuesta = PersonalHome.new.respond_to? :asd
-    respuesta.deberia ser false
-  end
-
-  def testear_que_un_metodo_llama_a_otro
-
-    PersonalHome.mockear(:cantidad_personas) do
-      10
-    end
-
-    respuesta = PersonalHome.new.duplico_cantidad_personas
-    respuesta.deberia ser 20
   end
 end

@@ -3,38 +3,9 @@ require 'rspec'
 require_relative '../src/Motor'
 require_relative '../src/Resultado'
 require_relative '../fixture/fixture_test_framework'
+require_relative '../src/Comportamiento'
+require_relative '../fixture/fixture_test_mock'
 
-
-describe 'test metaprogramacion del motor' do
-
-  it 'obtengo los test de la clase test' do
-
-    motor = Motor.new MiSuiteDeTests, Test_de_prueba_ser
-
-    esperado1 = [:testear_que_pasa_algo,:testear_que_pasa_otra_cosa]
-    esperado2 = [:testear_que_7_es_igual_a_7,:testear_que_true_es_igual_a_true, :testear_que_7_es_igual_a_9,
-                  :testear_que_hola_es_igual_a_chau]
-    
-    expect(motor.obtener_metodos_de_test MiSuiteDeTests).to eq(esperado1)
-    expect(motor.obtener_metodos_de_test Test_de_prueba_ser).to eq(esperado2)
-  end
-
-  it 'la clase con el test entiende ser' do
-
-    expect(MiSuiteDeTests.instance_methods.include? :ser).to eq(true)
-  end
-
-  it 'la clase con el test entiende mayor_a' do
-
-    expect(MiSuiteDeTests.instance_methods.include? :mayor_a).to eq(true)
-  end
-
-  it 'cargo varios suite y veo que se cargaron todos sus test' do
-    motor = Motor.new Prueba_Test_condiciones, Test_de_prueba_ser
-    expect(motor.lista_de_test_cargados.count ).to eq(16)
-  end
-
-end
 
 describe 'test del framework' do
 
@@ -46,7 +17,7 @@ describe 'test del framework' do
     motor = Motor.new Test_de_prueba_ser
     lista_resultados = motor.testear(Test_de_prueba_ser)
 
-    expect(contarResultados(lista_resultados,:paso?)).to eq(2)
+    expect(contarResultados(lista_resultados,:paso?)).to eq(3)
     expect(contarResultados(lista_resultados,:fallo?)).to eq(2)
   end
 
@@ -62,7 +33,7 @@ describe 'test del framework' do
     motor = Motor.new Prueba_Test_condiciones, Test_de_prueba_ser, Campo_de_explosiones_Test
     lista_resultados = motor.testear
 
-    expect(contarResultados(lista_resultados,:paso?)).to eq(10)
+    expect(contarResultados(lista_resultados,:paso?)).to eq(11)
     expect(contarResultados(lista_resultados,:fallo?)).to eq(10)
   end
 
@@ -113,23 +84,19 @@ describe 'test del framework' do
     motor = Motor.new Prueba_azucar_sintactico_tener_Test
     lista_resultados = motor.testear
 
-
     expect(contarResultados(lista_resultados,:paso?)).to eq(1)
     expect(contarResultados(lista_resultados,:fallo?)).to eq(2)
-    #TODO el test de apellido chequea por un atributo que el objeto no tiene, chequear si deberia explotar o si deberia
-    #dar test fallido, en caso de test fallido eliminar expect inferior y sumar 1 al expect superior
-    #expect( lista_resultados.select{ |resultado| resultado.exploto?}.count ).to eq(1)
+
   end
 
   it 'prueba del mock' do
     motor = Motor.new Test_mock
     lista_resultados = motor.testear
 
-    expect(contarResultados(lista_resultados,:paso?)).to eq(4)
+    expect(contarResultados(lista_resultados,:paso?)).to eq(7)
     expect(contarResultados(lista_resultados,:fallo?)).to eq(0)
     expect(contarResultados(lista_resultados,:exploto?)).to eq(0)
   end
-
 end
 
 describe 'prueba de tests unitarios' do
@@ -147,8 +114,12 @@ describe 'prueba de tests unitarios' do
 
   it 'falla el deberia ser' do
     lista_resultados = motor.testear Test_de_prueba_ser , :testear_que_7_es_igual_a_9
-
     expect(lista_resultados.first.class).to eq(ResultadoFallo)
+  end
+
+  it 'se pasa el deberia ser con strings' do
+    lista_resultados = motor.testear Test_de_prueba_ser , :testear_que_dos_strings_son_iguales
+    expect(lista_resultados.first.class).to eq(ResultadoPaso)
   end
 
   it 'se pasa el mayor_a' do
@@ -164,8 +135,14 @@ describe 'prueba de tests unitarios' do
     expect(lista_resultados.first.class).to eq(ResultadoFallo)
   end
 
-  it 'falla el mayor_a' do
-    lista_resultados = motor.testear Prueba_Test_condiciones , :testear_que_4_mayor_a_6
+  it 'pasa el menor_a' do
+    lista_resultados = motor.testear Prueba_Test_condiciones , :testear_que_2_menor_a_100
+
+    expect(lista_resultados.first.class).to eq(ResultadoPaso)
+  end
+
+  it 'falla el menor_a' do
+    lista_resultados = motor.testear Prueba_Test_condiciones , :testear_que_6_menor_a_3
 
     expect(lista_resultados.first.class).to eq(ResultadoFallo)
   end
@@ -180,7 +157,7 @@ describe 'prueba de tests unitarios' do
     expect(lista_resultados.first.class).to eq(ResultadoFallo)
   end
 
-  it 'se pase ser_algo'do
+  it 'se pasa ser_algo'do
     lista_resultados= motor.testear Prueba_azucar_sintactico_ser_Test, :testear_que_pepe_deberia_ser_viejo
     expect(lista_resultados.first.class).to eq(ResultadoPaso)
   end
